@@ -1,42 +1,52 @@
-from django.shortcuts import render_to_response
+from django.template.loader import get_template
 from django.http import HttpResponse
-import json
+from django.template import Template, Context
 import serial
+import json
 TTY_PORT = '/dev/ttyUSB0'
 BAUD = 9600
+s = serial.Serial(TTY_PORT, BAUD, timeout=1)
+red = 0
+green = 0
+yellow = 0
+adc = 0
+def main(request):
+    global adc
+    global red
+    global green
+    global yellow
+    t = get_template('new.html')
+    out = t.render(Context({}))
+    if request.method == 'GET':
+        a = request.GET.get('red', red)
+        if a != red:
+            red = a
+            if red == '1':
+                s.write(chr(0x01))
+            elif red == '0':
+                s.write(chr(0x11))
+	b = request.GET.get('green', green)
+        if b != green:
+            green = b
+            if green == '1':
+                s.write(chr(0x03))
+            elif green == '0':
+                s.write(chr(0x1B))
+	c = request.GET.get('yelliow',yellow)
+        if c != yellow:
+            yellow = b
+            if yellow == '1':
+                s.write(chr(0x02))
+            elif yellow == '0':
+                s.write(chr(0x1A))
+    return HttpResponse(out)
 
-serial_port = serial.Serial(TTY_PORT, BAUD, timeout=1)
-
-def testdj(request):
-     a = request.get('ledred','0', type=int)
-     if a == 1:
-          serial_port.write(chr(0x01))
-     elif a == 0:
-          serial_port.write(chr(0x11))
-     b = request.GET('ledwhite','0',type=int)
-          if b == 1:
-              serial_port.write(chr(0x03))
-          elif b == 0:
-              serial_port.write(chr(0x1B))
-     c = request.GET('ledyellow','0',type=int)
-        if c == 1:
-             serial_port.write(chr(0x04))
-        elif c == 0:
-             serial_port.write(chr(0x1C))
-     d = request.GET('ledgreen','0', type=int)
-        if d == 1:
-             serial_port.write(chr(0x02))
-        elif d == 0:
-             serial_port.write(chr(0x1A))
-     return render_to_response('test.html')
-
-def avr_value(request):
-        adc = request.GET('ADC_COMMAND','1', type=int)
-        if adc== 1:
-            serial_port.write(chr(0x1D))   
-            response = serial_port.read(255)
-            new = ([("%d" % ord(char)) for char in response])
-            one = new[0]
-            volt = {'key':one}          
-            return jsonify(volt)
-        return HttpResponse(0)
+def avr(request):
+    global adc
+    if request.method == 'GET':
+	adc = request.GET.get('adc', adc)
+        print adc
+        if adc == '1':
+              s.write(chr(0x1D))
+              out = s.read(255)
+    return HttpResponse(out)

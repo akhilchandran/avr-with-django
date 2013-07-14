@@ -1,12 +1,10 @@
 from django.conf.urls import patterns, include, url
-from testit.view import testdj,script,getcolor
+from avr.view import main,avr
 # Uncomment the next two lines to enable the admin:
 # from django.contrib import admin
 # admin.autodiscover()
 
-urlpatterns = patterns('',
-    url(r'^$', testdj ),
-    url(r'^/avr/$',avr_value),
+urlpatterns = patterns('',url('^$', main),url('^avr$',avr),
     # Examples:
     # url(r'^$', 'testit.views.home', name='home'),
     # url(r'^testit/', include('testit.foo.urls')),
